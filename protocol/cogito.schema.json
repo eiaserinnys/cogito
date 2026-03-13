@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/eiaserinnys/cogito/protocol/cogito.schema.json",
+  "title": "Cogito Service Reflection Protocol",
+  "description": "Schema for service self-description responses at each reflection level.",
+  "type": "object",
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "description": "Level 0: Service identity information.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique service identifier."
+        },
+        "version": {
+          "type": "string",
+          "description": "Service version (git hash, semver, or 'unknown')."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable service description."
+        },
+        "language": {
+          "type": "string",
+          "description": "Implementation language (e.g. 'python', 'node')."
+        },
+        "port": {
+          "type": "integer",
+          "description": "Listening port number."
+        },
+        "transport": {
+          "type": "string",
+          "description": "Transport protocol (e.g. 'sse', 'stdio', 'http')."
+        }
+      },
+      "required": ["name", "version", "description"],
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "description": "A single capability declaration.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Capability identifier."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable capability description."
+        },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tool names exposed by this capability."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Categorization tags."
+        }
+      },
+      "required": ["name", "description"],
+      "additionalProperties": false
+    },
+    "config_entry": {
+      "type": "object",
+      "description": "Level 1: A configuration entry tied to a capability.",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Configuration key (e.g. environment variable name)."
+        },
+        "capability": {
+          "type": ["string", "null"],
+          "description": "Owning capability name, or null if standalone."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["env", "file", "arg"],
+          "description": "Configuration source type."
+        },
+        "source_path": {
+          "type": "string",
+          "description": "Path to the configuration source (e.g. '.env')."
+        },
+        "sensitive": {
+          "type": "boolean",
+          "description": "Whether the value should be masked in output."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this config is required for the service."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["valid", "missing", "empty"],
+          "description": "Current status: valid (present+non-empty), missing (not set), empty (set but empty string)."
+        },
+        "current_value": {
+          "type": ["string", "null"],
+          "description": "Current value (masked if sensitive)."
+        }
+      },
+      "required": ["key", "source", "sensitive", "required", "status"],
+      "additionalProperties": false
+    },
+    "source_entry": {
+      "type": "object",
+      "description": "Level 2: Source code location for a capability.",
+      "properties": {
+        "capability": {
+          "type": "string",
+          "description": "Owning capability name."
+        },
+        "module": {
+          "type": "string",
+          "description": "Python module path."
+        },
+        "path": {
+          "type": "string",
+          "description": "Relative file path from source_root."
+        },
+        "entry_point": {
+          "type": "string",
+          "description": "Function or method name."
+        },
+        "start_line": {
+          "type": "integer",
+          "description": "Start line number in source file."
+        },
+        "end_line": {
+          "type": "integer",
+          "description": "End line number in source file."
+        },
+        "git_head": {
+          "type": "string",
+          "description": "Git HEAD commit hash."
+        },
+        "git_remote_url": {
+          "type": ["string", "null"],
+          "description": "Git remote origin URL."
+        }
+      },
+      "required": ["capability", "module", "path", "entry_point", "start_line", "end_line", "git_head"],
+      "additionalProperties": false
+    },
+    "runtime_status": {
+      "type": "object",
+      "description": "Level 3: Runtime health and metrics.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["healthy", "degraded", "unhealthy"],
+          "description": "Overall service health."
+        },
+        "pid": {
+          "type": "integer",
+          "description": "Process ID."
+        },
+        "uptime_seconds": {
+          "type": "number",
+          "description": "Seconds since process start."
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Custom metrics key-value pairs.",
+          "additionalProperties": true
+        },
+        "last_error": {
+          "type": ["string", "null"],
+          "description": "Last error message, or null."
+        }
+      },
+      "required": ["status", "pid", "uptime_seconds"],
+      "additionalProperties": false
+    },
+    "level0_response": {
+      "type": "object",
+      "description": "Level 0 response: identity + capabilities.",
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "capabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      },
+      "required": ["identity", "capabilities"],
+      "additionalProperties": false
+    },
+    "level1_response": {
+      "type": "object",
+      "description": "Level 1 response: configuration entries.",
+      "properties": {
+        "configs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/config_entry" }
+        }
+      },
+      "required": ["configs"],
+      "additionalProperties": false
+    },
+    "level2_response": {
+      "type": "object",
+      "description": "Level 2 response: source locations.",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source_entry" }
+        }
+      },
+      "required": ["sources"],
+      "additionalProperties": false
+    },
+    "level3_response": {
+      "$ref": "#/$defs/runtime_status",
+      "description": "Level 3 response: runtime status."
+    },
+    "full_response": {
+      "type": "object",
+      "description": "Full reflection response combining all levels.",
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "capabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/capability" }
+        },
+        "configs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/config_entry" }
+        },
+        "sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source_entry" }
+        },
+        "runtime": { "$ref": "#/$defs/runtime_status" }
+      },
+      "required": ["identity", "capabilities"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/level0_response" },
+    { "$ref": "#/$defs/level1_response" },
+    { "$ref": "#/$defs/level2_response" },
+    { "$ref": "#/$defs/level3_response" },
+    { "$ref": "#/$defs/full_response" }
+  ]
+}

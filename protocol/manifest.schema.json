@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/eiaserinnys/cogito/protocol/manifest.schema.json",
+  "title": "Cogito Composition Manifest",
+  "description": "Schema for declaring services in a composition manifest.",
+  "type": "object",
+  "properties": {
+    "services": {
+      "type": "array",
+      "description": "List of services in the composition.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/internal_service" },
+          { "$ref": "#/$defs/external_service" }
+        ]
+      }
+    }
+  },
+  "required": ["services"],
+  "additionalProperties": false,
+  "$defs": {
+    "internal_service": {
+      "type": "object",
+      "description": "A service with a live /reflect endpoint.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Service identifier."
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the /reflect endpoint."
+        },
+        "type": {
+          "type": "string",
+          "const": "internal"
+        }
+      },
+      "required": ["name", "endpoint", "type"],
+      "additionalProperties": false
+    },
+    "external_service": {
+      "type": "object",
+      "description": "A service described by static data (no live endpoint).",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Service identifier."
+        },
+        "type": {
+          "type": "string",
+          "const": "external"
+        },
+        "static": {
+          "type": "object",
+          "description": "Static reflection data for this service.",
+          "properties": {
+            "identity": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "version": { "type": "string" },
+                "description": { "type": "string" },
+                "language": { "type": "string" },
+                "port": { "type": "integer" },
+                "transport": { "type": "string" }
+              },
+              "required": ["name", "description"]
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "tools": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                },
+                "required": ["name", "description"]
+              }
+            }
+          },
+          "required": ["identity"]
+        }
+      },
+      "required": ["name", "type", "static"],
+      "additionalProperties": false
+    }
+  }
+}

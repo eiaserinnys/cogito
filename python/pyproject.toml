@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cogito"
+version = "0.1.0"
+description = "Service reflection protocol for AI agent orchestrators"
+readme = "../README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "eiaserinnys" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.100.0", "uvicorn>=0.20.0"]
+manifest = ["httpx>=0.24", "pyyaml>=6.0"]
+runtime = ["psutil>=5.9.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-timeout>=2.0",
+    "httpx>=0.24",
+    "pyyaml>=6.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "psutil>=5.9.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cogito"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+timeout = 60
