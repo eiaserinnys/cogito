@@ -170,6 +170,19 @@
         "last_error": {
           "type": ["string", "null"],
           "description": "Last error message, or null."
+        },
+        "exe": {
+          "type": ["string", "null"],
+          "description": "Full path of the executable."
+        },
+        "cmdline": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Full command line arguments."
+        },
+        "cwd": {
+          "type": ["string", "null"],
+          "description": "Current working directory."
         }
       },
       "required": ["status", "pid", "uptime_seconds"],

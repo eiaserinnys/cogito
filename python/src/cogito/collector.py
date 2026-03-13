@@ -11,6 +11,7 @@ import inspect
 import logging
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Callable
@@ -182,8 +183,23 @@ def collect_runtime(
             "cpu_percent": proc.cpu_percent(interval=0),
             "num_threads": proc.num_threads(),
         }
+        try:
+            exe = proc.exe()
+        except (psutil.AccessDenied, psutil.ZombieProcess, OSError):
+            exe = sys.executable
+        try:
+            cmdline = tuple(proc.cmdline())
+        except (psutil.AccessDenied, psutil.ZombieProcess, OSError):
+            cmdline = tuple(sys.argv)
+        try:
+            cwd = proc.cwd()
+        except (psutil.AccessDenied, psutil.ZombieProcess, OSError):
+            cwd = os.getcwd()
     except ImportError:
         metrics = {}
+        exe = sys.executable
+        cmdline = tuple(sys.argv)
+        cwd = os.getcwd()
 
     return RuntimeStatus(
         status=health_status,
@@ -191,4 +207,7 @@ def collect_runtime(
         uptime_seconds=round(uptime, 2),
         metrics=metrics,
         last_error=last_error,
+        exe=exe,
+        cmdline=cmdline,
+        cwd=cwd,
     )

@@ -249,6 +249,13 @@ class TestLevel3Runtime:
         assert "pid" in data
         assert data["uptime_seconds"] >= 0
 
+    def test_runtime_includes_process_context(self, reflector):
+        data = reflector.get_level3()
+        assert "exe" in data
+        assert "cmdline" in data
+        assert isinstance(data["cmdline"], list)
+        assert "cwd" in data
+
     def test_report_error_changes_status(self, reflector):
         reflector.report_error("something broke")
         data = reflector.get_level3()

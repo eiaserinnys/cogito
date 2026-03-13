@@ -118,6 +118,9 @@ class RuntimeStatus:
     uptime_seconds: float
     metrics: dict = field(default_factory=dict)
     last_error: str | None = None
+    exe: str | None = None
+    cmdline: tuple[str, ...] | None = None
+    cwd: str | None = None
 
     def to_dict(self) -> dict:
         d: dict = {
@@ -129,4 +132,10 @@ class RuntimeStatus:
             d["metrics"] = dict(self.metrics)
         if self.last_error is not None:
             d["last_error"] = self.last_error
+        if self.exe is not None:
+            d["exe"] = self.exe
+        if self.cmdline is not None:
+            d["cmdline"] = list(self.cmdline)
+        if self.cwd is not None:
+            d["cwd"] = self.cwd
         return d

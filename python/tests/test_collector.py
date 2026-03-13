@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -146,3 +147,59 @@ class TestCollectRuntime:
         )
         assert rt.status == "degraded"
         assert rt.last_error == "test error"
+
+    def test_runtime_includes_process_context(self):
+        import time
+
+        rt = collect_runtime(start_time=time.monotonic() - 1.0)
+        assert rt.exe is not None
+        assert rt.cmdline is not None
+        assert rt.cwd is not None
+
+    def test_runtime_exe_is_python(self):
+        import time
+
+        rt = collect_runtime(start_time=time.monotonic() - 1.0)
+        # exe should contain 'python' regardless of psutil availability
+        assert "python" in rt.exe.lower()
+
+    def test_runtime_cwd_matches_os(self):
+        import time
+
+        rt = collect_runtime(start_time=time.monotonic() - 1.0)
+        assert os.path.normcase(rt.cwd) == os.path.normcase(os.getcwd())
+
+    def test_runtime_cmdline_is_tuple(self):
+        import time
+
+        rt = collect_runtime(start_time=time.monotonic() - 1.0)
+        assert isinstance(rt.cmdline, tuple)
+        assert len(rt.cmdline) > 0
+
+    def test_runtime_to_dict_includes_process_context(self):
+        import time
+
+        rt = collect_runtime(start_time=time.monotonic() - 1.0)
+        d = rt.to_dict()
+        assert "exe" in d
+        assert "cmdline" in d
+        assert isinstance(d["cmdline"], list)
+        assert "cwd" in d
+
+    def test_runtime_fallback_without_psutil(self):
+        import time
+
+        with patch.dict("sys.modules", {"psutil": None}):
+            rt = collect_runtime(start_time=time.monotonic() - 1.0)
+            assert rt.exe == sys.executable
+            assert rt.cmdline == tuple(sys.argv)
+            assert os.path.normcase(rt.cwd) == os.path.normcase(os.getcwd())
+
+    def test_to_dict_omits_none_process_context(self):
+        from cogito.types import RuntimeStatus
+
+        rt = RuntimeStatus(status="healthy", pid=1, uptime_seconds=0.0)
+        d = rt.to_dict()
+        assert "exe" not in d
+        assert "cmdline" not in d
+        assert "cwd" not in d
