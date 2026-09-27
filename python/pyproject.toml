@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "cogito"
 version = "0.1.0"
 description = "Service reflection protocol for AI agent orchestrators"
-readme = "../README.md"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
